@@ -86,7 +86,7 @@ One table is enough for the stated scope.
 |---|---|---|
 | id | integer PK | |
 | full_name | text, required | 1-120 chars, trimmed |
-| email | text, unique | case-insensitive, valid format |
+| email | text, unique | stored lowercase (so unique is case-insensitive; a database check enforces it), valid format |
 | job_title | text, required | indexed |
 | department | text, required | indexed |
 | country | text (ISO-2) | indexed, must be a supported country |
