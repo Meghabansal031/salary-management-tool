@@ -56,3 +56,153 @@ def payload():
         return values
 
     return build
+
+
+SAMPLE_EMPLOYEES = [
+    # name, email prefix, job title, department, country, currency, salary, hire date
+    (
+        "Aarav Mehta",
+        "aarav.mehta",
+        "Software Engineer",
+        "Engineering",
+        "IN",
+        "INR",
+        2_000_000,
+        "2020-03-01",
+    ),
+    (
+        "Priya Sharma",
+        "priya.sharma",
+        "Software Engineer",
+        "Engineering",
+        "IN",
+        "INR",
+        2_400_000,
+        "2021-06-01",
+    ),
+    (
+        "Rohan Gupta",
+        "rohan.gupta",
+        "Software Engineer",
+        "Engineering",
+        "IN",
+        "INR",
+        2_800_000,
+        "2019-01-15",
+    ),
+    (
+        "Anna Schmidt",
+        "anna.schmidt",
+        "Software Engineer",
+        "Engineering",
+        "DE",
+        "EUR",
+        70_000,
+        "2022-02-01",
+    ),
+    (
+        "Lukas Weber",
+        "lukas.weber",
+        "Software Engineer",
+        "Engineering",
+        "DE",
+        "EUR",
+        80_000,
+        "2018-09-10",
+    ),
+    (
+        "John Carter",
+        "john.carter",
+        "Software Engineer",
+        "Engineering",
+        "US",
+        "USD",
+        120_000,
+        "2017-05-05",
+    ),
+    (
+        "Emily Davis",
+        "emily.davis",
+        "Product Manager",
+        "Product",
+        "US",
+        "USD",
+        140_000,
+        "2019-11-20",
+    ),
+    (
+        "Michael Brown",
+        "michael.brown",
+        "Product Manager",
+        "Product",
+        "US",
+        "USD",
+        150_000,
+        "2016-04-04",
+    ),
+    (
+        "Sophie Martin",
+        "sophie.martin",
+        "HR Specialist",
+        "People",
+        "FR",
+        "EUR",
+        55_000,
+        "2023-01-09",
+    ),
+    (
+        "Yuki Tanaka",
+        "yuki.tanaka",
+        "Data Analyst",
+        "Analytics",
+        "JP",
+        "JPY",
+        7_000_000,
+        "2021-08-23",
+    ),
+    (
+        "Oliver Smith",
+        "oliver.smith",
+        "Data Analyst",
+        "Analytics",
+        "GB",
+        "GBP",
+        60_000,
+        "2020-10-12",
+    ),
+    (
+        "Chloe Wilson",
+        "chloe.wilson",
+        "Data Analyst",
+        "Analytics",
+        "GB",
+        "GBP",
+        66_000,
+        "2022-07-18",
+    ),
+]
+
+
+@pytest.fixture
+def sample_employees(db):
+    """12 employees across 6 countries with hand-checkable numbers (reused by later tests)."""
+    from datetime import date
+
+    from app.models import Employee
+
+    rows = [
+        Employee(
+            full_name=name,
+            email=f"{email}@acme.com",
+            job_title=title,
+            department=department,
+            country=country,
+            currency=currency,
+            salary=salary,
+            hire_date=date.fromisoformat(hired),
+        )
+        for name, email, title, department, country, currency, salary, hired in SAMPLE_EMPLOYEES
+    ]
+    db.add_all(rows)
+    db.commit()
+    return rows

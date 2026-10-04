@@ -124,6 +124,9 @@ All paths are under `/api`.
 - **Sorting is whitelisted** (`full_name`, `job_title`, `department`, `country`, `salary`, `hire_date`). Never put raw user text into an `ORDER BY`.
 - **`peer_stats` in the list response:** when the list is filtered by country and job title, the response includes that group's median and typical range, so the HR Manager sees who is above or below their peers without leaving the page.
 - **Mixed-currency guard:** a group statistic across several countries is meaningless in local currency. `basis=local` is only allowed when the result is limited to one country (a `country` filter, or `group_by=country`); otherwise the API returns a 400 with a clear message, and the UI switches to `basis=usd`.
+- **Stable paging.** Every sort ends with the employee `id` as a tie-breaker. Without it, rows with equal values (many people share a department or salary) can repeat or vanish between pages. Text columns sort case-insensitively. Sorting by salary across several countries compares raw local amounts, so the UI filters by country first or labels the currency.
+- **Search treats `%` and `_` literally**, so typing them cannot turn a search into a wildcard match.
+- **One error format.** Not found is `404 {"detail": "..."}`; a duplicate email is `409 {"detail": "..."}`; invalid input is `422 {"detail": "Validation failed", "errors": [{"field": "salary", "message": "..."}]}`, so the UI can show each message next to its form field.
 - **Import is stateless:** `commit` receives the same file again and re-validates it, so no temporary server storage is needed.
 
 ## 5. Statistics: median and typical range in SQLite
@@ -213,7 +216,7 @@ Backend (FastAPI) on a free host such as Render; frontend on Vercel, with the AP
 8. `feat(backend): list with search, filters, sorting, pagination and tests`
 9. `feat(backend): deterministic seed script with tests`
 10. `feat(backend): percentile and group statistics with tests`
-11. `feat(backend): insights endpoints (summary, distribution, headcount) with tests`
+11. `feat(backend): insights endpoints (summary, distribution, headcount), meta filters and list peer_stats, with tests`
 12. `test(backend): performance benchmark on 10k rows`
 13. `chore(frontend): scaffold Next.js with Tailwind and shadcn/ui`
 14. `feat(frontend): employee table with search, filters and pagination`

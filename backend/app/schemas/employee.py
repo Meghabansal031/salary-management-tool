@@ -7,7 +7,7 @@ row that is valid in one place is valid in the other. Messages arrive from Pydan
 
 import re
 from datetime import date, datetime, timezone
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import (
     BaseModel,
@@ -24,6 +24,14 @@ from app.core.currency import COUNTRY_BY_CODE, SUPPORTED_CURRENCIES
 # about 6.7 million USD, so large-denomination currencies are not rejected.
 MAX_SALARY = 1_000_000_000
 EARLIEST_HIRE_DATE = date(1950, 1, 1)
+
+# List endpoint limits. The sort fields are a whitelist: only these names ever reach ORDER BY.
+DEFAULT_PAGE_SIZE = 25
+MAX_PAGE_SIZE = 100
+SortField = Literal[
+    "full_name", "job_title", "department", "country", "salary", "hire_date"
+]
+SortOrder = Literal["asc", "desc"]
 
 # Practical email check (not the full RFC): local part, "@", dotted domain, 2+ letter TLD.
 _EMAIL_PATTERN = re.compile(
@@ -125,3 +133,12 @@ class EmployeeRead(BaseModel):
     hire_date: date
     created_at: datetime
     updated_at: datetime
+
+
+class EmployeePage(BaseModel):
+    """One page of employees plus the total number of matches across all pages."""
+
+    items: list[EmployeeRead]
+    total: int
+    page: int
+    page_size: int
