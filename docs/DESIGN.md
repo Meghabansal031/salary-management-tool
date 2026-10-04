@@ -55,7 +55,7 @@ salary-management-tool/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py            FastAPI app, CORS, router registration
-│   │   ├── seed.py            deterministic generator; run with `python -m app.seed`
+│   │   ├── seed/              data.py (roles, pay bands, names), generator.py, loader.py, __main__.py
 │   │   ├── core/              config.py, database.py (engine, session, pragmas), currency.py
 │   │   ├── models/            employee.py (table + indexes)
 │   │   ├── schemas/           employee.py, insights.py, imports.py (Pydantic + validation)
@@ -155,7 +155,7 @@ A benchmark test seeds 10,000 rows and asserts these limits with some margin. Kn
 
 ## 8. Seed data
 
-`app/seed.py` uses `random.Random(42)` so every run produces identical data. It covers **12 countries across six regions**, roughly 10 departments, and job titles with a salary band each. Salaries come from a USD base band for the title, scaled by a country factor, converted to local currency, plus noise. That produces realistic gaps between countries and within a role. Emails are unique by construction.
+`app/seed/generator.py` uses `random.Random(42)` so every run produces identical data (on the same Python version; tests compare two runs with each other instead of hard-coding values). It is pure Python with no database, and `app/seed/loader.py` does the bulk insert. Run it with `python -m app.seed`. It covers **12 countries across six regions**, roughly 10 departments, and job titles with a salary band each. Salaries come from a USD base band for the title, scaled by a country factor, converted to local currency, plus noise. That produces realistic gaps between countries and within a role. Emails are unique by construction.
 
 | Region | Country (code) | Currency | Salary level vs US (illustrative) |
 |---|---|---|---|
