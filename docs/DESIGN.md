@@ -91,8 +91,8 @@ One table is enough for the stated scope.
 | department | text, required | indexed |
 | country | text (ISO-2) | indexed, must be a supported country |
 | currency | text (ISO-4217) | must match the country's currency |
-| salary | integer | annual, whole units of local currency, > 0 |
-| hire_date | date | not in the future |
+| salary | integer | annual, whole units of local currency, > 0 and at most 1,000,000,000 |
+| hire_date | date | not in the future and not before 1950 |
 | created_at, updated_at | datetime | |
 
 **Indexes:** `country`, `department`, `job_title`, plus composites `(country, job_title)` and `(country, department)` because the most common questions combine them. `email` has a unique index.
