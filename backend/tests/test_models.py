@@ -7,16 +7,16 @@ from sqlalchemy.exc import IntegrityError
 
 
 def make_employee(**overrides) -> Employee:
-    values = dict(
-        full_name="Priya Sharma",
-        email="priya.sharma@acme.com",
-        job_title="Software Engineer",
-        department="Engineering",
-        country="IN",
-        currency="INR",
-        salary=2_400_000,
-        hire_date=date(2021, 6, 1),
-    )
+    values = {
+        "full_name": "Megha Bansal",
+        "email": "megha.bansal@acme.com",
+        "job_title": "Software Engineer",
+        "department": "Engineering",
+        "country": "IN",
+        "currency": "INR",
+        "salary": 2_400_000,
+        "hire_date": date(2021, 6, 1),
+    }
     values.update(overrides)
     return Employee(**values)
 
@@ -52,7 +52,7 @@ def test_duplicate_email_is_rejected(db):
 
 
 def test_uppercase_email_is_rejected(db):
-    db.add(make_employee(email="Priya.Sharma@acme.com"))
+    db.add(make_employee(email="Megha.Bansal@acme.com"))
     with pytest.raises(IntegrityError):
         db.commit()
 
