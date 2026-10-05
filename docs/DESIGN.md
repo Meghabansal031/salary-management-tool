@@ -126,7 +126,7 @@ All paths are under `/api`.
 - **Mixed-currency guard:** a group statistic across several countries is meaningless in local currency. `basis=local` is only allowed when the result is limited to one country (a `country` filter, or `group_by=country`); otherwise the API returns a 400 with a clear message, and the UI switches to `basis=usd`.
 - **Stable paging.** Every sort ends with the employee `id` as a tie-breaker. Without it, rows with equal values (many people share a department or salary) can repeat or vanish between pages. Text columns sort case-insensitively. Sorting by salary across several countries compares raw local amounts, so the UI filters by country first or labels the currency.
 - **Search treats `%` and `_` literally**, so typing them cannot turn a search into a wildcard match.
-- **One error format.** Not found is `404 {"detail": "..."}`; a duplicate email is `409 {"detail": "..."}`; invalid input is `422 {"detail": "Validation failed", "errors": [{"field": "salary", "message": "..."}]}`, so the UI can show each message next to its form field.
+- **One error format.** Not found is `404 {"detail": "..."}`; a request the API refuses to compute (for example local-currency statistics across several countries) is `400 {"detail": "..."}`; a duplicate email is `409 {"detail": "..."}`; invalid input is `422 {"detail": "Validation failed", "errors": [{"field": "salary", "message": "..."}]}`, so the UI can show each message next to its form field.
 - **Import is stateless:** `commit` receives the same file again and re-validates it, so no temporary server storage is needed.
 
 ## 5. Statistics: median and typical range in SQLite

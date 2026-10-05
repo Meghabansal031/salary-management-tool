@@ -17,6 +17,10 @@ class AppError(Exception):
         self.message = message
 
 
+class BadRequestError(AppError):
+    status_code = 400
+
+
 class NotFoundError(AppError):
     status_code = 404
 
