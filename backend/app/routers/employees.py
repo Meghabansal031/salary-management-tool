@@ -3,10 +3,13 @@
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
+from app.core.currency import currency_for_country
 from app.core.database import get_db
 from app.schemas import EmployeeCreate, EmployeePage, EmployeeRead, EmployeeUpdate
 from app.schemas.employee import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, SortField, SortOrder
+from app.schemas.insights import PeerStats
 from app.services import employees as employee_service
+from app.services import insights as insights_service
 from app.services.employees import EmployeeQuery
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
@@ -38,11 +41,23 @@ def list_employees(
             order=order,
         ),
     )
+    peers = insights_service.peer_stats(db, country, job_title)
     return EmployeePage(
         items=[EmployeeRead.model_validate(employee) for employee in items],
         total=total,
         page=page,
         page_size=page_size,
+        peer_stats=PeerStats(
+            country=country.strip().upper(),
+            job_title=job_title.strip(),
+            currency=currency_for_country(country.strip().upper()),
+            count=peers.count,
+            p25=peers.p25,
+            median=peers.median,
+            p75=peers.p75,
+        )
+        if peers
+        else None,
     )
 
 

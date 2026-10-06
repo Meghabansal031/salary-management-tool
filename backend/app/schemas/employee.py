@@ -19,6 +19,7 @@ from pydantic import (
 )
 
 from app.core.currency import COUNTRY_BY_CODE, SUPPORTED_CURRENCIES
+from app.schemas.insights import PeerStats
 
 # Sanity ceiling in local currency units. Generous on purpose: 1 billion JPY is only
 # about 6.7 million USD, so large-denomination currencies are not rejected.
@@ -142,3 +143,5 @@ class EmployeePage(BaseModel):
     total: int
     page: int
     page_size: int
+    # Set when the list is filtered by both country and job title: how that peer group is paid.
+    peer_stats: PeerStats | None = None

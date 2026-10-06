@@ -7,7 +7,10 @@ def get_list(client, **params):
 def test_default_list_shape(client, sample_employees):
     body = get_list(client)
 
-    assert set(body) == {"items", "total", "page", "page_size"}
+    assert set(body) == {"items", "total", "page", "page_size", "peer_stats"}
+    assert (
+        body["peer_stats"] is None
+    )  # only set when filtering by country and job title
     assert body["page"] == 1
     assert body["page_size"] == 25
     assert body["total"] == 12

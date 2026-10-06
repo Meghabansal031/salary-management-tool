@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from app.core.database import init_db
 from app.core.errors import register_error_handlers
-from app.routers import employees
+from app.routers import employees, insights, meta
 
 
 @asynccontextmanager
@@ -18,6 +18,8 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title="Salary Management API", version="0.1.0", lifespan=lifespan)
 register_error_handlers(app)
 app.include_router(employees.router)
+app.include_router(insights.router)
+app.include_router(meta.router)
 
 
 @app.get("/api/health", tags=["health"])

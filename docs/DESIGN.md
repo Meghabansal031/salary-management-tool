@@ -112,9 +112,9 @@ All paths are under `/api`.
 | `GET /employees/{id}` | Read one |
 | `PUT /employees/{id}` | Update |
 | `DELETE /employees/{id}` | Delete |
-| `GET /meta/filters` | Distinct countries, departments, job titles, supported currencies (for dropdowns) |
+| `GET /meta/filters` | Supported countries (code, name, currency), departments and job titles in use, supported currencies (for dropdowns and forms) |
 | `GET /insights/summary` | Stats per group. Query: `group_by` (country, department, job_title), optional filters, `basis` (local or usd) |
-| `GET /insights/distribution` | Histogram bins for the filtered set |
+| `GET /insights/distribution` | Histogram for the filtered set: `bins` (2 to 50) equal-width ranges, counted in the database. `basis=local` needs a country filter |
 | `GET /insights/headcount` | Headcount by country, plus average salary in USD |
 | `GET /import/template` | Download the Excel template (built last) |
 | `POST /import/preview` | Upload a file, validate every row, return the row-level error report (built last) |
@@ -122,7 +122,7 @@ All paths are under `/api`.
 
 **Decisions inside the API:**
 - **Sorting is whitelisted** (`full_name`, `job_title`, `department`, `country`, `salary`, `hire_date`). Never put raw user text into an `ORDER BY`.
-- **`peer_stats` in the list response:** when the list is filtered by country and job title, the response includes that group's median and typical range, so the HR Manager sees who is above or below their peers without leaving the page.
+- **`peer_stats` in the list response:** when the list is filtered by country and job title, the response includes that group's count, median and typical range (P25 to P75), so the HR Manager sees who is above or below their peers without leaving the page. The peer group is "same job title, same country" and deliberately ignores the search text, department filter and paging, so it does not change as the list is narrowed.
 - **Mixed-currency guard:** a group statistic across several countries is meaningless in local currency. `basis=local` is only allowed when the result is limited to one country (a `country` filter, or `group_by=country`); otherwise the API returns a 400 with a clear message, and the UI switches to `basis=usd`.
 - **Stable paging.** Every sort ends with the employee `id` as a tie-breaker. Without it, rows with equal values (many people share a department or salary) can repeat or vanish between pages. Text columns sort case-insensitively. Sorting by salary across several countries compares raw local amounts, so the UI filters by country first or labels the currency.
 - **Search treats `%` and `_` literally**, so typing them cannot turn a search into a wildcard match.
@@ -133,7 +133,7 @@ All paths are under `/api`.
 
 SQLite has no `MEDIAN` or percentile function. Options considered:
 1. Load all salaries into Python and compute there: simple, but breaks the requirement that aggregation runs in the database.
-2. **Window functions (chosen):** `ROW_NUMBER()` and `COUNT()` per group rank the salaries in SQL. Count, min, max and average use ordinary `GROUP BY`. For median and the 25th/75th percentiles, SQL returns only the one or two rows at the needed positions per group, and a small, pure Python function interpolates between them.
+2. **Window functions (chosen), in two queries.** Query 1 is an ordinary `GROUP BY` for count, min, max and average. Python then works out which ranks each group needs for the 25th percentile, median and 75th percentile (a pure function in `services/stats.py`). Query 2 ranks every salary inside its group with the `ROW_NUMBER()` window function and returns only the handful of rows on those ranks; Python interpolates between them. The position maths stays in plain Python, where it is easy to read and to test, instead of integer arithmetic inside SQL.
 
 The interpolation uses the standard linear method: position = (n - 1) x p. Median is p = 0.5 and the typical range is p = 0.25 to 0.75. The tests check the result against Python's `statistics.quantiles(method="inclusive")`, which uses the same method.
 

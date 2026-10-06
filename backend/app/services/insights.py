@@ -2,10 +2,10 @@
 
 from dataclasses import dataclass
 
-from sqlalchemy import case, func, select, tuple_
+from sqlalchemy import Integer, case, cast, func, select, tuple_
 from sqlalchemy.orm import Session
 
-from app.core.currency import USD_PER_UNIT
+from app.core.currency import COUNTRY_BY_CODE, USD_PER_UNIT, currency_for_country
 from app.core.errors import BadRequestError
 from app.models import Employee
 from app.services.employees import employee_filters
@@ -129,4 +129,139 @@ def group_summary(
             max=round(float(maximum), 2),
         )
         for group, count, minimum, maximum, average in aggregates
+    ]
+
+
+# ---------- context for the list page: how are this person's peers paid? ----------
+
+
+def peer_stats(
+    db: Session, country: str | None, job_title: str | None
+) -> GroupStats | None:
+    """Stats for one job title inside one country, in local currency.
+
+    Needs both a country and a job title. Deliberately ignores search text, department and
+    paging: the peer group is "same role, same country", whatever the list happens to show.
+    """
+    if not (country and country.strip() and job_title and job_title.strip()):
+        return None
+    stats = group_summary(
+        db, "job_title", "local", country=country, job_title=job_title
+    )
+    return stats[0] if stats else None
+
+
+def display_currency(
+    basis: str, group_by: str, group: str | None = None, country: str | None = None
+) -> str | None:
+    """The currency a statistic is expressed in, so the UI can label it."""
+    if basis == "usd":
+        return "USD"
+    code = group if group_by == "country" else (country or "").strip().upper()
+    return currency_for_country(code) if code in COUNTRY_BY_CODE else None
+
+
+# ---------- salary distribution (histogram) ----------
+
+
+@dataclass(frozen=True)
+class DistributionBin:
+    start: float
+    end: float
+    count: int
+
+
+@dataclass(frozen=True)
+class Distribution:
+    total: int
+    min: float | None
+    max: float | None
+    bins: list[DistributionBin]
+
+
+def salary_distribution(
+    db: Session,
+    bins: int = 20,
+    basis: str = "local",
+    q: str | None = None,
+    country: str | None = None,
+    department: str | None = None,
+    job_title: str | None = None,
+) -> Distribution:
+    """Histogram of salaries: ``bins`` equal-width ranges between the lowest and highest salary."""
+    if bins < 1:
+        raise ValueError("bins must be at least 1")
+    if basis not in ("local", "usd"):
+        raise ValueError(f"Unsupported basis: {basis!r}")
+    if basis == "local" and not (country and country.strip()):
+        raise BadRequestError(
+            "A local-currency distribution needs a single country. Filter by country or use USD."
+        )
+
+    value = Employee.salary if basis == "local" else usd_salary_expression()
+    filters = employee_filters(q, country, department, job_title)
+
+    total, low, high = db.execute(
+        select(func.count(), func.min(value), func.max(value)).where(*filters)
+    ).one()
+    if total == 0:
+        return Distribution(total=0, min=None, max=None, bins=[])
+
+    low, high = float(low), float(high)
+    if low == high:  # everybody earns the same: one bin
+        return Distribution(
+            total=total, min=low, max=high, bins=[DistributionBin(low, high, total)]
+        )
+
+    # The database decides which bin each salary falls in and counts per bin. The highest
+    # salary lands exactly on the upper edge, so it is pulled back into the last bin.
+    raw_position = (value - low) * bins / (high - low)
+    bucket = case((raw_position >= bins, bins - 1), else_=cast(raw_position, Integer))
+    counts = dict(
+        db.execute(
+            select(bucket.label("bucket"), func.count())
+            .where(*filters)
+            .group_by(bucket)
+        ).all()
+    )
+
+    width = (high - low) / bins
+    result = [
+        DistributionBin(
+            start=round(low + index * width, 2),
+            end=round(high if index == bins - 1 else low + (index + 1) * width, 2),
+            count=counts.get(index, 0),
+        )
+        for index in range(bins)
+    ]
+    return Distribution(total=total, min=round(low, 2), max=round(high, 2), bins=result)
+
+
+# ---------- headcount by country ----------
+
+
+@dataclass(frozen=True)
+class HeadcountRow:
+    country: str
+    count: int
+    average_usd: float
+
+
+def headcount_by_country(
+    db: Session,
+    q: str | None = None,
+    department: str | None = None,
+    job_title: str | None = None,
+) -> list[HeadcountRow]:
+    """Employees per country with their average salary in USD, biggest country first."""
+    filters = employee_filters(q, None, department, job_title)
+    rows = db.execute(
+        select(Employee.country, func.count(), func.avg(usd_salary_expression()))
+        .where(*filters)
+        .group_by(Employee.country)
+        .order_by(func.count().desc(), Employee.country)
+    ).all()
+    return [
+        HeadcountRow(country, count, round(float(average), 2))
+        for country, count, average in rows
     ]
