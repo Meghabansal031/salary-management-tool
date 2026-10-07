@@ -188,10 +188,11 @@ A benchmark test file (`tests/test_performance.py`, marked `performance`) seeds 
 - **Next.js** (App Router, TypeScript), **Tailwind + shadcn/ui** for components, **TanStack Query** for server data and caching, **Recharts** for charts, **react-hook-form + zod** for forms.
 - **Pages:** `/employees` (search with debounce, filters, sortable table, pagination, add/edit dialog), `/insights` (group-by tabs, summary table, histogram, headcount chart), `/import` (built last).
 - The UI never holds more than one page of employees in memory. All numbers come from the API.
+- **One API client.** `src/lib/api.ts` is the only code that talks to the backend. Its functions return typed results (`src/lib/types.ts` mirrors the backend schemas) and throw an `ApiError` that carries the server's `{field, message}` list, so forms can show each message next to its field. The API address comes from `NEXT_PUBLIC_API_URL`; `src/lib/format.ts` shows every amount with its own currency.
 
 ## 11. Deployment
 
-Backend (FastAPI) on a free host such as Render; frontend on Vercel, with the API address in `NEXT_PUBLIC_API_URL` and CORS configured on the backend. The free tier's disk is temporary, so the app seeds itself on first start when the database is empty (under 10 s). Trade-off: data resets on redeploy, which is acceptable for a demo. A production setup would use a persistent database.
+Backend (FastAPI) on a free host such as Render; frontend on Vercel, with the API address in `NEXT_PUBLIC_API_URL` and CORS configured on the backend (allowed origins come from the `CORS_ORIGINS` environment variable and default to the local dev server, `http://localhost:3000`). The free tier's disk is temporary, so the app seeds itself on first start when the database is empty (under 10 s). Trade-off: data resets on redeploy, which is acceptable for a demo. A production setup would use a persistent database.
 
 ## 12. Key trade-offs
 
@@ -218,7 +219,7 @@ Backend (FastAPI) on a free host such as Render; frontend on Vercel, with the AP
 10. `feat(backend): percentile and group statistics with tests`
 11. `feat(backend): insights endpoints (summary, distribution, headcount), meta filters and list peer_stats, with tests`
 12. `test(backend): performance benchmark on 10k rows`
-13. `chore(frontend): scaffold Next.js with Tailwind and shadcn/ui`
+13. `chore(frontend): scaffold Next.js with Tailwind, shadcn/ui, API client and app shell` (preceded by a small `feat(backend): enable CORS for the frontend`)
 14. `feat(frontend): employee table with search, filters and pagination`
 15. `feat(frontend): add and edit employee forms`
 16. `feat(frontend): insights dashboard`
