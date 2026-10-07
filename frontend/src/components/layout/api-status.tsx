@@ -13,8 +13,16 @@ export function ApiStatus() {
     retry: false,
   });
 
-  const label = isPending ? "Checking API…" : isSuccess ? "API connected" : "API unreachable";
-  const color = isPending ? "bg-yellow-400" : isSuccess ? "bg-green-500" : "bg-red-500";
+  const label = isPending
+    ? "Checking API…"
+    : isSuccess
+      ? "API connected"
+      : "API unreachable";
+  const color = isPending
+    ? "bg-yellow-400"
+    : isSuccess
+      ? "bg-green-500"
+      : "bg-red-500";
 
   return (
     <span className="flex items-center gap-2 text-sm text-muted-foreground">

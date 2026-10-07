@@ -70,7 +70,7 @@ salary-management-tool/
     │   ├── app/               Next.js routes: employees/, insights/, import/, layout.tsx
     │   ├── components/        ui/ (shadcn), employees/, insights/, import/, layout/
     │   ├── hooks/             use-employees.ts, use-insights.ts, use-debounce.ts
-    │   └── lib/               api.ts (API client), types.ts, format.ts, utils.ts
+    │   └── lib/               api.ts (API client), types.ts, format.ts, employee-query.ts (table state), peer.ts (peer comparison), utils.ts; *.test.ts beside them
     ├── public/
     ├── .env.example           NEXT_PUBLIC_API_URL
     └── package.json, tsconfig.json, next.config.ts
@@ -188,6 +188,9 @@ A benchmark test file (`tests/test_performance.py`, marked `performance`) seeds 
 - **Next.js** (App Router, TypeScript), **Tailwind + shadcn/ui** for components, **TanStack Query** for server data and caching, **Recharts** for charts, **react-hook-form + zod** for forms.
 - **Pages:** `/employees` (search with debounce, filters, sortable table, pagination, add/edit dialog), `/insights` (group-by tabs, summary table, histogram, headcount chart), `/import` (built last).
 - The UI never holds more than one page of employees in memory. All numbers come from the API.
+- **Table logic is pure and tested.** `src/lib/employee-query.ts` holds the table's state and the rules for changing it (any filter goes back to page 1, clicking a column flips its direction, numbers and dates start highest or newest first, page numbers stay in range). `src/lib/peer.ts` decides how a salary compares with its peers. Neither uses React, so Vitest tests them directly (`npm test`). The components only display.
+- **Search waits for a pause in typing** (300 ms) before asking the API, and the old page stays on screen while the next one loads, so the table does not flash.
+- **Peer flags.** When the list is filtered by country and job title, the page shows that group's typical range (P25 to P75) and flags each salary: *above/below range* (outside the middle half) and *far above/far below* (more than 1.5 times the width of that range beyond it, the standard outlier rule), plus how far it is from the median in percent. Groups of fewer than 4 people are not flagged, because quartiles of 2 or 3 people say very little.
 - **One API client.** `src/lib/api.ts` is the only code that talks to the backend. Its functions return typed results (`src/lib/types.ts` mirrors the backend schemas) and throw an `ApiError` that carries the server's `{field, message}` list, so forms can show each message next to its field. The API address comes from `NEXT_PUBLIC_API_URL`; `src/lib/format.ts` shows every amount with its own currency.
 
 ## 11. Deployment
