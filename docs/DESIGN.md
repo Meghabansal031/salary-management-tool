@@ -50,7 +50,7 @@ salary-management-tool/
 ├── .gitignore
 ├── .vscode/                   settings.json, extensions.json
 │
-├── docs/                      REQUIREMENTS.md, DESIGN.md, AI_USAGE.md
+├── docs/                      REQUIREMENTS.md, DESIGN.md, AI_USAGE.md, PERFORMANCE.md
 │
 ├── backend/
 │   ├── app/
@@ -151,7 +151,7 @@ Pydantic models in `schemas/employee.py` enforce the rules in section 3. The cre
 | Seed < 10 s | One transaction, bulk `executemany`, standard library only |
 | Import < 30 s | Parse once, validate in memory, bulk insert in one transaction |
 
-A benchmark test seeds 10,000 rows and asserts these limits with some margin. Known limit: `OFFSET` gets slower on very deep pages; keyset pagination is the next step if the data grows far beyond 10k.
+A benchmark test file (`tests/test_performance.py`, marked `performance`) seeds the full 10,000 rows and asserts the requirement limits (list under 300 ms, insights under 500 ms) on the median of 5 runs after a warm-up, measured in-process without network. It also records the SQL the app really sends and asks SQLite for its query plan (`EXPLAIN QUERY PLAN`) to prove that filtered queries use the indexes instead of scanning the table. On a slow machine the limits can be relaxed with `PERF_LIMIT_FACTOR` (for example `PERF_LIMIT_FACTOR=2`), and the benchmarks can be skipped with `pytest -m "not performance"`. Known limit: `OFFSET` gets slower on very deep pages; keyset pagination is the next step if the data grows far beyond 10k.
 
 ## 8. Seed data
 
