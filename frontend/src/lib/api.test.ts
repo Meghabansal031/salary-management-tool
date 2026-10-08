@@ -24,7 +24,10 @@ function fakeFetch(respond: () => Response): Call[] {
 }
 
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
 
 async function failureOf(promise: Promise<unknown>): Promise<ApiError> {
   try {
@@ -36,8 +39,8 @@ async function failureOf(promise: Promise<unknown>): Promise<ApiError> {
 }
 
 const input: EmployeeInput = {
-  full_name: "Priya Sharma",
-  email: "priya.sharma@acme.com",
+  full_name: "Megha Bansal",
+  email: "megha.bansal@acme.com",
   job_title: "Software Engineer",
   department: "Engineering",
   country: "IN",
@@ -48,20 +51,36 @@ const input: EmployeeInput = {
 
 describe("buildUrl", () => {
   it("leaves out empty, undefined and null parameters", () => {
-    const url = new URL(buildUrl("/api/employees", { q: "", country: "IN", page: 2, order: undefined, x: null }));
+    const url = new URL(
+      buildUrl("/api/employees", {
+        q: "",
+        country: "IN",
+        page: 2,
+        order: undefined,
+        x: null,
+      }),
+    );
     expect([...url.searchParams.keys()].sort()).toEqual(["country", "page"]);
   });
 
   it("encodes values", () => {
-    const url = new URL(buildUrl("/api/employees", { job_title: "Software Engineer" }));
+    const url = new URL(
+      buildUrl("/api/employees", { job_title: "Software Engineer" }),
+    );
     expect(url.searchParams.get("job_title")).toBe("Software Engineer");
   });
 });
 
 describe("api calls", () => {
   it("lists employees with only the filled-in parameters", async () => {
-    const calls = fakeFetch(() => json({ items: [], total: 0, page: 1, page_size: 25, peer_stats: null }));
-    const page = await api.listEmployees({ q: "", country: "IN", page_size: 1 });
+    const calls = fakeFetch(() =>
+      json({ items: [], total: 0, page: 1, page_size: 25, peer_stats: null }),
+    );
+    const page = await api.listEmployees({
+      q: "",
+      country: "IN",
+      page_size: 1,
+    });
 
     expect(page.total).toBe(0);
     expect(calls[0].url).toContain("country=IN");
@@ -75,7 +94,9 @@ describe("api calls", () => {
     await api.createEmployee(input);
 
     expect(calls[0].init?.method).toBe("POST");
-    expect(calls[0].init?.headers).toEqual({ "Content-Type": "application/json" });
+    expect(calls[0].init?.headers).toEqual({
+      "Content-Type": "application/json",
+    });
     expect(JSON.parse(calls[0].init?.body as string).country).toBe("IN");
   });
 
@@ -106,26 +127,52 @@ describe("errors", () => {
 
   it("keeps the field messages of a 422", async () => {
     fakeFetch(() =>
-      json({ detail: "Validation failed", errors: [{ field: "salary", message: "Input should be greater than 0" }] }, 422),
+      json(
+        {
+          detail: "Validation failed",
+          errors: [
+            { field: "salary", message: "Input should be greater than 0" },
+          ],
+        },
+        422,
+      ),
     );
     const error = await failureOf(api.createEmployee(input));
 
     expect(error.status).toBe(422);
-    expect(error.fieldErrors).toEqual([{ field: "salary", message: "Input should be greater than 0" }]);
+    expect(error.fieldErrors).toEqual([
+      { field: "salary", message: "Input should be greater than 0" },
+    ]);
   });
 
   it("reports a duplicate email (409) and a mixed-currency request (400)", async () => {
-    fakeFetch(() => json({ detail: "An employee with this email already exists" }, 409));
+    fakeFetch(() =>
+      json({ detail: "An employee with this email already exists" }, 409),
+    );
     expect((await failureOf(api.createEmployee(input))).status).toBe(409);
 
-    fakeFetch(() => json({ detail: "Local-currency statistics need a single country. Filter by country or use USD." }, 400));
+    fakeFetch(() =>
+      json(
+        {
+          detail:
+            "Local-currency statistics need a single country. Filter by country or use USD.",
+        },
+        400,
+      ),
+    );
     const error = await failureOf(api.summary({ group_by: "job_title" }));
     expect(error.status).toBe(400);
     expect(error.message).toMatch(/single country/);
   });
 
   it("falls back to the status text when the error body is not JSON", async () => {
-    fakeFetch(() => new Response("oops", { status: 500, statusText: "Internal Server Error" }));
+    fakeFetch(
+      () =>
+        new Response("oops", {
+          status: 500,
+          statusText: "Internal Server Error",
+        }),
+    );
     const error = await failureOf(api.health());
 
     expect(error.status).toBe(500);

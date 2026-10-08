@@ -22,9 +22,18 @@ describe("applyFilters", () => {
   });
 
   it("keeps sorting and page size", () => {
-    const state = { ...DEFAULT_STATE, sort: "salary" as const, order: "desc" as const, pageSize: 50 };
+    const state = {
+      ...DEFAULT_STATE,
+      sort: "salary" as const,
+      order: "desc" as const,
+      pageSize: 50,
+    };
     const next = applyFilters(state, { q: "priya" });
-    expect([next.sort, next.order, next.pageSize]).toEqual(["salary", "desc", 50]);
+    expect([next.sort, next.order, next.pageSize]).toEqual([
+      "salary",
+      "desc",
+      50,
+    ]);
   });
 
   it("does not edit the old state", () => {
@@ -35,21 +44,39 @@ describe("applyFilters", () => {
 
 describe("clearFilters and hasActiveFilters", () => {
   it("clears all four filters and keeps sorting and page size", () => {
-    const state = { ...DEFAULT_STATE, q: "a", country: "IN", department: "Sales", job_title: "x", sort: "salary" as const, pageSize: 100, page: 3 };
+    const state = {
+      ...DEFAULT_STATE,
+      q: "a",
+      country: "IN",
+      department: "Sales",
+      job_title: "x",
+      sort: "salary" as const,
+      pageSize: 100,
+      page: 3,
+    };
     const next = clearFilters(state);
-    expect([next.q, next.country, next.department, next.job_title]).toEqual(["", "", "", ""]);
+    expect([next.q, next.country, next.department, next.job_title]).toEqual([
+      "",
+      "",
+      "",
+      "",
+    ]);
     expect([next.sort, next.pageSize, next.page]).toEqual(["salary", 100, 1]);
   });
 
   it("is false for the default state and for sort or page changes", () => {
     expect(hasActiveFilters(DEFAULT_STATE)).toBe(false);
-    expect(hasActiveFilters({ ...DEFAULT_STATE, sort: "salary", page: 4 })).toBe(false);
+    expect(
+      hasActiveFilters({ ...DEFAULT_STATE, sort: "salary", page: 4 }),
+    ).toBe(false);
   });
 
   it("is true for any filter, but not for a blank search", () => {
     expect(hasActiveFilters({ ...DEFAULT_STATE, q: "a" })).toBe(true);
     expect(hasActiveFilters({ ...DEFAULT_STATE, country: "IN" })).toBe(true);
-    expect(hasActiveFilters({ ...DEFAULT_STATE, department: "Sales" })).toBe(true);
+    expect(hasActiveFilters({ ...DEFAULT_STATE, department: "Sales" })).toBe(
+      true,
+    );
     expect(hasActiveFilters({ ...DEFAULT_STATE, job_title: "x" })).toBe(true);
     expect(hasActiveFilters({ ...DEFAULT_STATE, q: "   " })).toBe(false);
   });
@@ -122,7 +149,13 @@ describe("toListParams", () => {
   });
 
   it("passes filters through and trims the search text", () => {
-    const params = toListParams({ ...DEFAULT_STATE, q: "  priya ", country: "IN", job_title: "Software Engineer", page: 3 });
+    const params = toListParams({
+      ...DEFAULT_STATE,
+      q: "  priya ",
+      country: "IN",
+      job_title: "Software Engineer",
+      page: 3,
+    });
     expect(params.q).toBe("priya");
     expect(params.country).toBe("IN");
     expect(params.job_title).toBe("Software Engineer");

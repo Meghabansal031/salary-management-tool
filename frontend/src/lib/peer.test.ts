@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { MIN_PEERS_FOR_FLAGS, formatPercentFromMedian, peerPosition, percentFromMedian } from "./peer";
+import {
+  MIN_PEERS_FOR_FLAGS,
+  formatPercentFromMedian,
+  peerPosition,
+  percentFromMedian,
+} from "./peer";
 import type { PeerStats } from "./types";
 
 // Typical range 2.2M to 2.6M, so its width is 0.4M and the "far" margin is 0.6M:
@@ -39,8 +44,12 @@ describe("peerPosition", () => {
   });
 
   it("flags nobody in a group that is too small", () => {
-    expect(peerPosition(9_000_000, { ...peers, count: MIN_PEERS_FOR_FLAGS - 1 })).toBeNull();
-    expect(peerPosition(9_000_000, { ...peers, count: MIN_PEERS_FOR_FLAGS })).toBe("far-above");
+    expect(
+      peerPosition(9_000_000, { ...peers, count: MIN_PEERS_FOR_FLAGS - 1 }),
+    ).toBeNull();
+    expect(
+      peerPosition(9_000_000, { ...peers, count: MIN_PEERS_FOR_FLAGS }),
+    ).toBe("far-above");
   });
 
   it("treats any difference as far when everybody earns the same", () => {

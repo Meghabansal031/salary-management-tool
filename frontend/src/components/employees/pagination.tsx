@@ -1,6 +1,11 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,7 +43,10 @@ export function Pagination({
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">Rows per page</span>
-          <Select value={String(pageSize)} onValueChange={(value) => onPageSize(Number(value))}>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(value) => onPageSize(Number(value))}
+          >
             <SelectTrigger className="w-20" aria-label="Rows per page">
               <SelectValue />
             </SelectTrigger>
@@ -57,16 +65,40 @@ export function Pagination({
         </span>
 
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" aria-label="First page" disabled={page <= 1} onClick={() => onPage(1)}>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="First page"
+            disabled={page <= 1}
+            onClick={() => onPage(1)}
+          >
             <ChevronsLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" aria-label="Previous page" disabled={page <= 1} onClick={() => onPage(page - 1)}>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Previous page"
+            disabled={page <= 1}
+            onClick={() => onPage(page - 1)}
+          >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" aria-label="Next page" disabled={page >= pages} onClick={() => onPage(page + 1)}>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Next page"
+            disabled={page >= pages}
+            onClick={() => onPage(page + 1)}
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" aria-label="Last page" disabled={page >= pages} onClick={() => onPage(pages)}>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Last page"
+            disabled={page >= pages}
+            onClick={() => onPage(pages)}
+          >
             <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>

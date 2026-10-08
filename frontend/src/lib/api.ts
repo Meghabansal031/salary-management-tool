@@ -17,7 +17,8 @@ import type {
   SummaryResponse,
 } from "./types";
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+export const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
 /** One message tied to one form field, as returned by the API for a 422 response. */
 export interface FieldError {
@@ -57,14 +58,18 @@ interface RequestOptions {
   body?: unknown;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { method = "GET", params, body } = options;
 
   let response: Response;
   try {
     response = await fetch(buildUrl(path, params), {
       method,
-      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+      headers:
+        body === undefined ? undefined : { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
@@ -77,7 +82,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   if (!response.ok) {
     throw new ApiError(
       response.status,
-      typeof data?.detail === "string" ? data.detail : response.statusText || "Request failed",
+      typeof data?.detail === "string"
+        ? data.detail
+        : response.statusText || "Request failed",
       Array.isArray(data?.errors) ? data.errors : [],
     );
   }
