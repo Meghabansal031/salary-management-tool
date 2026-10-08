@@ -11,7 +11,12 @@ import type { PeerStats } from "./types";
 /** With fewer people than this, quartiles say very little, so nobody is flagged. */
 export const MIN_PEERS_FOR_FLAGS = 4;
 
-export type PeerPosition = "far-above" | "above" | "within" | "below" | "far-below";
+export type PeerPosition =
+  | "far-above"
+  | "above"
+  | "within"
+  | "below"
+  | "far-below";
 
 export const PEER_LABELS: Record<Exclude<PeerPosition, "within">, string> = {
   "far-above": "Far above range",
@@ -20,7 +25,10 @@ export const PEER_LABELS: Record<Exclude<PeerPosition, "within">, string> = {
   "far-below": "Far below range",
 };
 
-export function peerPosition(salary: number, peers: PeerStats | null): PeerPosition | null {
+export function peerPosition(
+  salary: number,
+  peers: PeerStats | null,
+): PeerPosition | null {
   if (!peers || peers.count < MIN_PEERS_FOR_FLAGS) return null;
 
   const margin = 1.5 * (peers.p75 - peers.p25);

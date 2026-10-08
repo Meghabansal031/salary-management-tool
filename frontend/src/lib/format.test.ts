@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDate, formatMoney, formatNumber, formatPercent } from "./format";
+import {
+  formatCompact,
+  formatDate,
+  formatMoney,
+  formatNumber,
+  formatPercent,
+} from "./format";
 
 describe("formatMoney", () => {
   it("shows each amount with its own currency symbol", () => {
@@ -30,5 +36,13 @@ describe("formatNumber and formatPercent", () => {
 
   it("shows one decimal for percentages", () => {
     expect(formatPercent(25)).toBe("25.0%");
+  });
+});
+
+describe("formatCompact", () => {
+  it("shortens big numbers for chart axes", () => {
+    expect(formatCompact(2_400_000)).toBe("2.4M");
+    expect(formatCompact(85_000)).toBe("85K");
+    expect(formatCompact(950)).toBe("950");
   });
 });

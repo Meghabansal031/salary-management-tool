@@ -25,3 +25,11 @@ export function formatDate(isoDate: string): string {
 export function formatPercent(value: number): string {
   return `${value.toFixed(1)}%`;
 }
+
+/** 2400000 -> "2.4M", 85000 -> "85K". For chart axes, where space is tight. */
+export function formatCompact(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
